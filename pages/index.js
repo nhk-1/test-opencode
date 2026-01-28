@@ -1,30 +1,46 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Head from 'next/head'
 
 export default function Portfolio() {
   const [navMenuActive, setNavMenuActive] = useState(false)
   const [lastScroll, setLastScroll] = useState(0)
   const [navbarClass, setNavbarClass] = useState('')
+  const titleRef = useRef(null)
+  const typingTimeoutRef = useRef(null)
+  const [isTyping, setIsTyping] = useState(false)
 
+  // Typing effect for hero title
   useEffect(() => {
-    // Typing effect for hero title
-    const heroTitle = document.querySelector('.hero-title')
-    if (heroTitle) {
-      const originalText = 'Maxence Farhat'
-      heroTitle.textContent = ''
-      let charIndex = 0
-      
-      function typeWriter() {
-        if (charIndex < originalText.length) {
-          heroTitle.textContent += originalText.charAt(charIndex)
-          charIndex++
-          setTimeout(typeWriter, 100)
-        }
-      }
-      
-      setTimeout(typeWriter, 500)
-    }
+    const heroTitle = titleRef.current
+    if (!heroTitle || isTyping) return
 
+    const originalText = 'Maxence Farhat'
+    let charIndex = 0
+    
+    const typeWriter = () => {
+      if (charIndex < originalText.length) {
+        heroTitle.textContent = originalText.substring(0, charIndex + 1)
+        charIndex++
+        typingTimeoutRef.current = setTimeout(typeWriter, 100)
+      } else {
+        setIsTyping(false)
+      }
+    }
+    
+    // Start typing animation
+    setIsTyping(true)
+    heroTitle.textContent = ''
+    typingTimeoutRef.current = setTimeout(typeWriter, 500)
+    
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Scroll animations and navbar effect
+  useEffect(() => {
     // Scroll animations
     const observerOptions = {
       threshold: 0.1,
@@ -119,7 +135,7 @@ export default function Portfolio() {
         <section id="accueil" className="hero">
           <div className="hero-content">
             <div>
-              <h1 className="hero-title">Maxence Farhat</h1>
+              <h1 className="hero-title" ref={titleRef}>Maxence Farhat</h1>
               <p className="hero-subtitle">Développeur & Étudiant passionné</p>
               <div className="hero-buttons">
                 <a href="#projets" className="btn btn-primary">Voir mes projets</a>
